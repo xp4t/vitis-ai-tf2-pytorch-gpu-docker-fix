@@ -81,6 +81,10 @@ Clone and build the fixed image:
 git clone https://github.com/xp4t/vitis-ai-tf2-pytorch-gpu-docker-fix.git
 cd vitis-ai-tf2-pytorch-gpu-docker-fix
 mv install_tf2.sh install_torch.sh ~/Vitis-AI/docker/common
+cd ~/Vitis-AI/docker/common
+chmod +x install_torch.sh
+chmod +x install_tf2.sh
+cd ..
 ./docker_build.sh -t gpu -f pytorch
 ```
 OR
