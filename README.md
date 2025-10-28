@@ -93,7 +93,18 @@ Verify it with
 ```bash
 docker images
 ```
+Expect an Output of
 
+```bash
+REPOSITORY                        TAG                       IMAGE ID       CREATED         SIZE
+xilinx/vitis-ai-tensorflow2-gpu   3.5.0.001-7a0d5a695       68ca758ec2e3   5 days ago      15.2GB
+xiinx/vitis-ai-gpu-tf2-base       latest                    a0779f677dae   6 days ago      7.48GB
+xilinx/vitis-ai-pytorch-gpu       3.5.0.001-7a0d5a695       f77d90366077   6 days ago      31.9GB
+xiinx/vitis-ai-gpu-pytorch-base   latest                    2db5d9706e78   6 days ago      11.2GB
+hello-world                       latest                    1b44b5a3e06a   2 months ago    10.1kB
+nvidia/cuda                       11.7.1-base-ubuntu20.04   c6ceebac4227   23 months ago   211MB
+xilinx/vitis-ai-pytorch-cpu       latest                    10667a5b7322   2 years ago     11.7GB
+```
 Run it with GPU support:
 
 ```bash
