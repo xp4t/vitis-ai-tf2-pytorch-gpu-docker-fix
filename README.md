@@ -78,15 +78,31 @@ After applying the fix, the error no longer occurs, and the Docker image builds 
 Clone and build the fixed image:
 
 ```bash
-git clone https://github.com/<your-username>/vitis-ai-tf2-docker-fix.git
-cd vitis-ai-tf2-docker-fix
-docker build -t vitis-ai-tf2-fixed .
+git clone https://github.com/xp4t/vitis-ai-tf2-pytorch-gpu-docker-fix.git
+cd vitis-ai-tf2-pytorch-gpu-docker-fix
+mv install_tf2.sh install_torch.sh ~/Vitis-AI/docker/common
+./docker_build.sh -t gpu -f pytorch
+```
+OR
+```bash
+./docker_build.sh -t gpu -f tf2 
+```
+
+Verify it with
+
+```bash
+docker images
 ```
 
 Run it with GPU support:
 
 ```bash
-docker run -it --gpus all vitis-ai-tf2-fixed
+cd ..
+./docker_run.sh xilinx/vitis-ai-pytorch-gpu:3.5.0.001-7a0d5a695 
+```
+OR
+```bash
+./docker_run.sh xilinx/vitis-ai-tensorflow2-gpu:3.5.0.001-7a0d5a695 
 ```
 
 ---
