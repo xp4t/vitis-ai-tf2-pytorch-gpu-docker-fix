@@ -4,7 +4,7 @@ This repository provides a verified fix for the **403 Forbidden error** and subs
 
 ---
 
-## 🧩 Background
+##  Background
 
 When building the TensorFlow 2 Docker image in Vitis AI, the process frequently fails during Conda environment setup with the following error:
 
