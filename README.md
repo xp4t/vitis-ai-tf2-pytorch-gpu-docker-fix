@@ -134,7 +134,7 @@ OR
 * Removed all access to `repo.anaconda.com`.
 * Added `conda-forge` and local channel explicitly.
 * Works across CPU, ROCm, and GPU builds.
-* Verified fix for TensorFlow 2 path on Vitis AI.
+* Verified fix for PyTorch path on Vitis AI.
 
 ---
 
