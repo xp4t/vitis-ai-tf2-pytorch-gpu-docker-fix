@@ -1,11 +1,27 @@
-#!/bin/bash                                                                                                                                                                     
-  
+#!/bin/bash
+
 set -ex
-if [[ ${VAI_CONDA_CHANNEL} =~ .*"tar.gz" ]]; then 
+
+# ─── Retry helper ────────────────────────────────────────────────────────────
+# Usage: retry <max_attempts> <delay_seconds> <command...>
+retry() {
+    local attempts=$1 delay=$2
+    shift 2
+    for i in $(seq 1 "$attempts"); do
+        "$@" && return 0
+        echo "[retry] Attempt $i/$attempts failed. Retrying in ${delay}s..."
+        sleep "$delay"
+    done
+    echo "[retry] All $attempts attempts failed."
+    return 1
+}
+# ─────────────────────────────────────────────────────────────────────────────
+
+if [[ ${VAI_CONDA_CHANNEL} =~ .*"tar.gz" ]]; then
        cd /scratch/;
-       wget -O conda-channel.tar.gz --progress=dot:mega ${VAI_CONDA_CHANNEL}; 
-       tar -xzvf conda-channel.tar.gz; 
-       export VAI_CONDA_CHANNEL=file:///scratch/conda-channel; 
+       retry 3 15 wget -O conda-channel.tar.gz --progress=dot:mega ${VAI_CONDA_CHANNEL};
+       tar -xzvf conda-channel.tar.gz;
+       export VAI_CONDA_CHANNEL=file:///scratch/conda-channel;
 fi
 sudo chmod -R 777 /scratch/
 sudo ln -s /opt/conda $VAI_ROOT/conda;
@@ -30,13 +46,13 @@ fi
 
 if [[ ${DOCKER_TYPE} == 'rocm' ]]; then
    sudo ln -s /opt/conda $VAI_ROOT/conda|| true
-    
+
     sudo conda config --remove channels defaults || true \
     && sudo conda config --append channels conda-forge \
-    && sudo conda update conda -y --force-reinstall -c conda-forge  \
+    && retry 3 30 sudo conda update conda -y --force-reinstall -c conda-forge \
     && sudo conda remove -y -n base --force numpy numpy-base \
-    && sudo conda env update -v -f /scratch/${DOCKER_TYPE}_conda/vitis-ai-pytorch.yml \
-    && sudo conda install -y -n base pytorch_nndct_rocm -c ${VAI_CONDA_CHANNEL} -c conda-forge  \
+    && retry 3 30 sudo conda env update -v -f /scratch/${DOCKER_TYPE}_conda/vitis-ai-pytorch.yml \
+    && retry 3 30 sudo conda install -y -n base pytorch_nndct_rocm -c ${VAI_CONDA_CHANNEL} -c conda-forge \
     && sudo conda clean -y --force-pkgs-dirs \
     && sudo mkdir -p $VAI_ROOT/compiler \
     && sudo conda config --env --remove-key channels  \
@@ -53,15 +69,15 @@ else
     && conda config --env --append channels pytorch \
     && conda config --env --append channels ${VAI_CONDA_CHANNEL} \
     && conda config --env --set channel_priority flexible \
-    && mamba env create -v -f /scratch/${DOCKER_TYPE}_conda/vitis-ai-pytorch.yml \
+    && retry 3 30 mamba env create -v -f /scratch/${DOCKER_TYPE}_conda/vitis-ai-pytorch.yml \
     && conda activate vitis-ai-pytorch \
     && conda config --show channels \
-    && pip install --force-reinstall scipy numpy==1.22 protobuf==3.20.3 tensorboard graphviz==0.19.1 imageio scikit-image natsort nibabel easydict yacs fire numba loguru \
+    && retry 3 15 pip install --force-reinstall scipy numpy==1.22 protobuf==3.20.3 tensorboard graphviz==0.19.1 imageio scikit-image natsort nibabel easydict yacs fire numba loguru \
     && mkdir -p $VAI_ROOT/compiler \
     && conda activate vitis-ai-pytorch \
-    && $torchvision_cmd \
+    && retry 3 15 $torchvision_cmd \
     && cp -r $CONDA_PREFIX/lib/python3.8/site-packages/vaic/arch $VAI_ROOT/compiler/arch \
     && conda clean -y --force-pkgs-dirs \
     && conda config --env --remove-key channels  \
-    && rm -fr ~/.cache 
+    && rm -fr ~/.cache
 fi
