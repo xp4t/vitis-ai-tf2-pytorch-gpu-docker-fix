@@ -1,6 +1,6 @@
 # Vitis AI TensorFlow 2/PyTorch GPU Docker Build Fix
 
-This repository provides a verified fix for the **403 Forbidden error** and subsequent **multi-download failure** during the TensorFlow 2 Docker image build in **Vitis AI GPU environments**.
+This repository provides a verified fix for the **403 Forbidden error** and subsequent **multi-download failure** during the TensorFlow 2 and PyTorch Docker image build in **Vitis AI GPU environments**.
 
 ---
 
