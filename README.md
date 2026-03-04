@@ -119,15 +119,36 @@ OR
 ```bash
 ./docker_run.sh xilinx/vitis-ai-tensorflow2-gpu:3.5.0.001-7a0d5a695 
 ```
+## Changes to `install_tf2.sh`
+
+### 1. Added `retry()` helper function
+All network-dependent commands (`wget`, `mamba env create`, `mamba install`, `pip install`) are now wrapped with `retry 3 <delay>` — 3 attempts with a delay between each. This handles intermittent network timeouts during the Docker build.
+
+### 2. Added `install_pip_requirements()` helper function
+Replaces the single `pip install -r /scratch/pip_requirements.txt` call. The problem is that packages in `pip_requirements.txt` have **conflicting `setuptools` version requirements** — they can't all be installed together:
+
+| Package | Needs | Reason |
+|---|---|---|
+| `ck >= 2.6` | `setuptools >= 61` | Uses `setuptools.command.build` (new API) |
+| `orderedset` | `setuptools < 58` | Uses `check_test_suite` (removed in 58) |
+| `protobuf == 3.20.3` | `setuptools < 58` | Uses `check_test_suite` (removed in 58) |
+
+The function reads the requirements file line by line and temporarily pins setuptools to the right version for each problematic package, then restores `setuptools>=61` at the end.
+
+### 3. Fixed standalone `protobuf==3.20.3` installs (all 3 branches)
+The original script used `pip install --force --no-binary protobuf protobuf==3.20.3` which forces a **source build**, triggering the `check_test_suite` error. Replaced in all three branches (`cpu`, `rocm`, `gpu`) with:
+```bash
+pip install "setuptools<58"
+pip install protobuf==3.20.3      # now uses pre-built wheel
+pip install --upgrade "setuptools>=61"
+```
+
+### 4. Removed all `"setuptools<58"` global pins
+The previous fix attempt globally pinned `setuptools<58` before every `pip install -r` call, which solved `orderedset` but broke `ck`. These global pins are gone — setuptools version is now managed per-package inside `install_pip_requirements()`.
+
 ---
 
-## ISSUES
-
-* I'M NOT VERY SURE IF THIS CORRECTLY WORKS WITH TENSORFLOW2, I COULDN'T CHECK IT CORRECTLY BECAUSE OF SOME CUDA DRIVER ISSUES AND I'M NOT SURE IF IT'S BECAUSE OF THE PC I'M USING OR THE BUILD ITSELF.
-* I WILL SORT IT OUT SOON AND WILL UPDATE LATER
-
----
----
+**In short:** the core problem was that three legacy packages in the requirements have mutually incompatible `setuptools` needs. The solution is to temporarily swap the setuptools version for each offending package rather than trying to pin one global version.
 
 ## Summary
 
